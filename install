@@ -1,0 +1,26 @@
+uv init
+
+uv python install 3.12
+uv python pin 3.12
+
+Создать виртуальное окружение
+uv venv
+source .venv/bin/activate 
+
+Добавить основные зависимости
+uv add fastapi uvicorn
+uv add sqlalchemy sqlmodel asyncpg
+uv add pydantic-settings
+uv add langchain langgraph
+uv add pgvector
+uv add pytest
+
+OpenAI:
+uv add openai
+
+локальные модели:
+uv add ollama
+uv add sentence-transformers
+
+мониторинг:
+uv add langfuse
