@@ -1,4 +1,4 @@
-readme = r"""# 🚗 Avto Search Bot
+"""# 🚗 Avto Search Bot
 
 AI-powered чатбот для поиска автомобильных объявлений с использованием RAG (Retrieval-Augmented Generation).
 
