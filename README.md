@@ -52,7 +52,7 @@ src/
 ```
 
 ## Схема работы запроса
-
+```
 User → POST /api/v1/chat
          ↓
     [moderation_agent]  — релевантен ли запрос?
@@ -62,6 +62,7 @@ User → POST /api/v1/chat
     [writer_agent]  — формирует ответ на основе найденных объявлений
          ↓
     Response { chat_id, answer, documents }
+```
 
 ## 🛠️ Технологии
 
