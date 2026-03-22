@@ -7,7 +7,6 @@ import logging
 
 logger = logging.getLogger(__name__)
 
-
 class SearchFilters(BaseModel):
     """Параметры фильтрации извлечённые из запроса пользователя."""
     query: str = Field(description="Очищенный поисковый запрос для векторного поиска")
@@ -41,11 +40,14 @@ async def rag_agent_node(state: ChatState) -> dict:
     })
 
     logger.warning("RAG AGENT results count: %d", len(results))
-    return {"retrieved_documents": results or []}
+    # return {"retrieved_documents": results or []}
 
-def should_continue_rag(state: ChatState) -> str:
-    return "writer"
+    # Новая часть для параллельных агентов
+    return {"rag_documents": results or []}
+
+# def should_continue_rag(state: ChatState) -> str:
+#     return "writer"
 
 
-def collect_retrieved_documents(state: ChatState) -> dict:
-    return {}
+# def collect_retrieved_documents(state: ChatState) -> dict:
+#     return {}
