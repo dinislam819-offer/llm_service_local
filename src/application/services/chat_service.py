@@ -1,9 +1,7 @@
 from sqlalchemy.ext.asyncio import AsyncSession
 from langchain_core.messages import HumanMessage
-
 from src.application.workflows.chat_graph import chat_graph
 from src.infrastructure.db.chat_repository_impl import ChatRepositoryImpl
-
 
 class ChatService:
     def __init__(self, session: AsyncSession):

@@ -1,9 +1,16 @@
+# src/ingestion/embedding_pipeline.py
+import re
 import pandas as pd
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.infrastructure.db.models import AvitoListing
 from src.infrastructure.llm.embeddings import get_embeddings
-from langchain_google_genai import GoogleGenerativeAIEmbeddings
+
+
+def _parse_year(title: str) -> int | None:
+    """Извлекает год из title вида 'Toyota Corolla, 2013'."""
+    match = re.search(r'\b(19|20)\d{2}\b', title)
+    return int(match.group()) if match else None
 
 
 class EmbeddingPipeline:
@@ -36,11 +43,15 @@ class EmbeddingPipeline:
         vectors = await self.embeddings.aembed_documents(texts)
 
         for (_, row), vector in zip(batch.iterrows(), vectors):
+            title = str(row.get("title", ""))[:500]
+            description = str(row.get("description", "")).replace("/\n", "\n")[:5000]
+
             listing = AvitoListing(
                 item_id=str(row.get("item_id", "")),
-                title=str(row.get("title", ""))[:500],
-                description=str(row.get("description", ""))[:5000],
+                title=title,
+                description=description,
                 price=float(row["price"]) if pd.notna(row.get("price")) else None,
+                year=_parse_year(title),                                               # ← новое
                 city=str(row["city"]) if pd.notna(row.get("city")) else None,
                 category_name=str(row["category_name"]) if pd.notna(row.get("category_name")) else None,
                 param_1=str(row["param_1"]) if pd.notna(row.get("param_1")) else None,

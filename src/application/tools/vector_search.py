@@ -1,41 +1,41 @@
-# from langchain_core.tools import tool
-# from sqlalchemy.ext.asyncio import AsyncSession
-
-# from src.infrastructure.db.vector_repository_impl import VectorRepositoryImpl
-
-
-# @tool
-# async def vector_search_tool(
-#     query: str,
-#     limit: int = 5,
-#     session: AsyncSession = None,
-# ) -> list[dict]:
-#     """
-#     Семантический поиск автомобильных объявлений по смыслу запроса.
-#     Используй когда запрос описательный: 'надёжное авто для семьи', 'экономичный городской автомобиль'.
-
-#     Args:
-#         query: Текстовый запрос для поиска
-#         limit: Количество результатов (по умолчанию 5)
-#     """
-#     repo = VectorRepositoryImpl(session=session)
-#     return await repo.search_by_embedding(query=query, limit=limit)
-
+# src/application/tools/vector_search.py
 from langchain_core.tools import tool
 from src.infrastructure.db.vector_repository_impl import VectorRepositoryImpl
 from src.infrastructure.db.session import async_session_factory
 
 
 @tool
-async def vector_search_tool(query: str, limit: int = 5) -> list[dict]:
+async def vector_search_tool(
+    query: str,
+    limit: int = 5,
+    max_price: float | None = None,
+    min_price: float | None = None,
+    city: str | None = None,
+    brand: str | None = None,
+    min_year: int | None = None,
+    max_year: int | None = None,
+) -> list[dict]:
     """
-    Семантический поиск автомобильных объявлений по смыслу запроса.
-    Используй когда запрос описательный: 'надёжное авто для семьи', 'экономичный городской автомобиль'.
+    Поиск автомобильных объявлений на Авито по семантическому смыслу.
+    Используй для ЛЮБОГО запроса связанного с поиском автомобилей.
 
     Args:
-        query: Текстовый запрос для поиска
+        query: Поисковый запрос (марка, модель, город, характеристики)
         limit: Количество результатов (по умолчанию 5)
+        max_price: Максимальная цена в рублях
+        min_price: Минимальная цена в рублях
+        city: Город поиска
+        brand: Марка автомобиля (Toyota, BMW, и т.д.)
     """
     async with async_session_factory() as session:
         repo = VectorRepositoryImpl(session=session)
-        return await repo.search_by_embedding(query=query, limit=limit)
+        return await repo.search_by_embedding(
+            query=query,
+            limit=limit,
+            max_price=max_price,
+            min_price=min_price,
+            city=city,
+            brand=brand,
+            min_year=min_year, 
+            max_year=max_year,
+        )

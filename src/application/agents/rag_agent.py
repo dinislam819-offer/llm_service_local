@@ -1,69 +1,51 @@
-from pathlib import Path
-from langchain_core.messages import HumanMessage, SystemMessage
-from langgraph.prebuilt import ToolNode
-
-from src.application.workflows.state import ChatState
+# src/application/agents/rag_agent.py
+from pydantic import BaseModel, Field
 from src.infrastructure.llm.provider_factory import get_llm
+from src.application.workflows.state import ChatState
 from src.application.tools.vector_search import vector_search_tool
-from src.application.tools.sql_search_tool import sql_search_tool
+import logging
 
-_PROMPT_TEMPLATE = (
-    Path(__file__).parent.parent.parent / "prompts" / "rag.txt"
-).read_text(encoding="utf-8")
-
-# Список инструментов, доступных RAG-агенту
-RAG_TOOLS = [vector_search_tool, sql_search_tool]
-
-# Готовый ToolNode для графа
-rag_tool_node = ToolNode(RAG_TOOLS)
+logger = logging.getLogger(__name__)
 
 
-def rag_agent_node(state: ChatState) -> dict:
-    """
-    RAG-агент: ReAct-паттерн.
-    LLM сам решает когда вызывать инструменты.
-    """
+class SearchFilters(BaseModel):
+    """Параметры фильтрации извлечённые из запроса пользователя."""
+    query: str = Field(description="Очищенный поисковый запрос для векторного поиска")
+    max_price: float | None = Field(default=None, description="Максимальная цена в рублях")
+    min_price: float | None = Field(default=None, description="Минимальная цена в рублях")
+    city: str | None = Field(default=None, description="Город")
+    brand: str | None = Field(default=None, description="Марка автомобиля")
+    min_year: int | None = Field(default=None, description="Год выпуска от")
+    max_year: int | None = Field(default=None, description="Год выпуска до")
+
+
+async def rag_agent_node(state: ChatState) -> dict:
+    logger.warning("RAG AGENT NODE CALLED: query=%s", state["user_query"])
+
     llm = get_llm()
-    llm_with_tools = llm.bind_tools(RAG_TOOLS)
+    structured_llm = llm.with_structured_output(SearchFilters)
+    filters: SearchFilters = await structured_llm.ainvoke(
+        f"Извлеки параметры поиска автомобиля из запроса: {state['user_query']}"
+    )
+    logger.warning("RAG AGENT filters: %s", filters)
 
-    system_prompt = _PROMPT_TEMPLATE.format(user_query=state["user_query"])
+    results = await vector_search_tool.ainvoke({
+        "query": filters.query,
+        "limit": 5,
+        "max_price": filters.max_price,
+        "min_price": filters.min_price,
+        "city": filters.city,
+        "brand": filters.brand,
+        "min_year": filters.min_year,
+        "max_year": filters.max_year,
+    })
 
-    response = llm_with_tools.invoke([
-        SystemMessage(content=system_prompt),
-        *state["messages"],
-    ])
-
-    return {"messages": [response]}
-
+    logger.warning("RAG AGENT results count: %d", len(results))
+    return {"retrieved_documents": results or []}
 
 def should_continue_rag(state: ChatState) -> str:
-    """
-    Роутер внутри RAG-цикла.
-    Если LLM вызвал tool — идём в tool_node.
-    Если нет — переходим к writer.
-    """
-    last_message = state["messages"][-1]
-    if hasattr(last_message, "tool_calls") and last_message.tool_calls:
-        return "tools"
     return "writer"
 
 
 def collect_retrieved_documents(state: ChatState) -> dict:
-    """
-    После завершения RAG-цикла собираем все найденные документы
-    из ToolMessage-ов в состояние.
-    """
-    import json
-    from langchain_core.messages import ToolMessage
-
-    documents = []
-    for msg in state["messages"]:
-        if isinstance(msg, ToolMessage):
-            try:
-                data = json.loads(msg.content)
-                if isinstance(data, list):
-                    documents.extend(data)
-            except (json.JSONDecodeError, TypeError):
-                pass
-
-    return {"retrieved_documents": documents}
+    return {}

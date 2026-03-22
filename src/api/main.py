@@ -1,16 +1,14 @@
+# src/api/main.py
 """ASGI entrypoint for the LLM service."""
 
 from contextlib import asynccontextmanager
 import logging
-
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-
 from src.infrastructure.db.session import create_db_and_tables, engine
 from src.api.routers import chat, avto, health
 
 logger = logging.getLogger(__name__)
-
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -22,7 +20,6 @@ async def lifespan(app: FastAPI):
     # Shutdown: закрываем пул соединений
     await engine.dispose()
     logger.info("Database connections closed.")
-
 
 app = FastAPI(
     title="Avto Search Bot API",

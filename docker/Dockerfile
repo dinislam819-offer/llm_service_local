@@ -1,3 +1,4 @@
+# Dockerfile
 # ── Stage 1: Builder ──
 FROM python:3.12-slim AS builder
 
@@ -32,7 +33,8 @@ COPY --from=builder /bin/uvx /bin/uvx
 COPY --from=builder /app/.venv /app/.venv
 COPY --from=builder /app/src /app/src
 COPY --from=builder /app/pyproject.toml /app/pyproject.toml
-COPY --from=builder /app/data /app/data 
+# НОВОЕ ДЛЯ КРАСИВОГО ЧАТА
+COPY --from=builder /app/src/api/static/ /app/src/api/static/                       
 
 # Переменные окружения
 ENV PATH="/app/.venv/bin:$PATH"

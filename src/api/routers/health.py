@@ -1,11 +1,10 @@
+# src/api/routes/health.py
 from fastapi import APIRouter, Depends
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import text
-
 from src.api.deps import get_session
 
 router = APIRouter()
-
 
 @router.get("/health")
 async def health_check():

@@ -1,0 +1,36 @@
+# .dockerignore
+data/
+*.csv
+
+# Python
+__pycache__/
+**/__pycache__/
+*.pyc
+*.pyo
+.venv/
+**/.venv/
+
+# Кэш моделей
+.cache/
+**/.cache/
+
+# Git
+.git/
+.gitignore
+
+# Env файлы с секретами
+.env
+.env.*
+
+# Логи и временные файлы
+*.log
+*.tmp
+
+# Jupyter notebooks
+notebooks/
+*.ipynb
+
+# Dev инструменты
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/

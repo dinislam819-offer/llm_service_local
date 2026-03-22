@@ -1,7 +1,7 @@
+# src/application/agents/writer_agent.py
 import json
 from pathlib import Path
 from langchain_core.messages import AIMessage, HumanMessage
-
 from src.application.dto.writer_dto import WriterResult
 from src.application.workflows.state import ChatState
 from src.infrastructure.llm.provider_factory import get_llm
@@ -10,39 +10,36 @@ _PROMPT_TEMPLATE = (
     Path(__file__).parent.parent.parent / "prompts" / "writer.txt"
 ).read_text(encoding="utf-8")
 
+# LLM создаётся один раз при старте
+_llm = get_llm()
+_structured_llm = _llm.with_structured_output(WriterResult)
 
 def _format_documents(documents: list[dict]) -> str:
-    """Форматирует найденные документы в читаемый текст для промпта."""
+    """Форматирует найденные автомобили в читаемый текст для промпта."""
     if not documents:
-        return "Вакансии не найдены."
+        return "Автомобили не найдены."
 
     lines = []
     for i, doc in enumerate(documents, 1):
-        salary = ""
-        if doc.get("salary_min") and doc.get("salary_max"):
-            currency = doc.get("salary_currency", "RUB")
-            salary = f"{doc['salary_min']}–{doc['salary_max']} {currency}"
-        elif doc.get("salary_min"):
-            salary = f"от {doc['salary_min']} {doc.get('salary_currency', 'RUB')}"
-        else:
-            salary = "зарплата не указана"
+        # Цена
+        price = doc.get("price")
+        price_str = f"{price:,} ₽".replace(",", " ") if price else "цена не указана"
+
+        # Пробег
+        mileage = doc.get("mileage")
+        mileage_str = f"{mileage:,} км".replace(",", " ") if mileage else "пробег не указан"
 
         lines.append(
-            f"{i}. {doc.get('title', 'Без названия')} — {doc.get('company', '?')}\n"
-            f"   📍 {doc.get('location', 'не указана')} | 💰 {salary}\n"
-            f"   {doc.get('description', '')[:200]}..."
+            f"{i}. {doc.get('brand', '?')} {doc.get('model', '')} "
+            f"{doc.get('year', '')}г.\n"
+            f"   💰 {price_str} | 🛣 {mileage_str}\n"
+            f"   ⚙️ {doc.get('engine', '')} | {doc.get('transmission', '')}\n"
+            f"   📍 {doc.get('location', 'не указан')}\n"
+            f"   {doc.get('description', '')[:200]}"
         )
     return "\n\n".join(lines)
 
-
-def writer_node(state: ChatState) -> dict:
-    """
-    Финальный узел: формирует ответ пользователю
-    на основе найденных документов.
-    """
-    llm = get_llm()
-    structured_llm = llm.with_structured_output(WriterResult)
-
+async def writer_node(state: ChatState) -> dict:  # async
     documents = state.get("retrieved_documents", [])
     formatted_docs = _format_documents(documents)
 
@@ -51,7 +48,7 @@ def writer_node(state: ChatState) -> dict:
         documents=formatted_docs,
     )
 
-    result: WriterResult = structured_llm.invoke([
+    result: WriterResult = await _structured_llm.ainvoke([  # ainvoke
         HumanMessage(content=prompt)
     ])
 
@@ -62,13 +59,12 @@ def writer_node(state: ChatState) -> dict:
         "messages": [ai_message],
     }
 
-
 def blocked_node(state: ChatState) -> dict:
     """Узел для нерелевантных запросов."""
     message = (
-        f"Извините, ваш запрос не относится к поиску вакансий. "
+        f"Извините, ваш запрос не относится к поиску автомобилей. "
         f"Причина: {state.get('moderation_reason', 'запрос нерелевантен')}. "
-        f"Я могу помочь найти вакансии, узнать о зарплатах или требованиях работодателей."
+        f"Я могу помочь найти автомобиль, узнать о ценах или характеристиках."
     )
     return {
         "final_answer": message,

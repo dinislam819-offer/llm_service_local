@@ -1,10 +1,9 @@
+# src/api/routes/avto.py
 from fastapi import APIRouter, Depends
 from sqlalchemy.ext.asyncio import AsyncSession
-
 from src.api.deps import get_session
 
 router = APIRouter()
-
 
 @router.get("/avto")
 async def list_avto(

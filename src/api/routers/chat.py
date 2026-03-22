@@ -1,12 +1,11 @@
+# src/api/routes/chat.py
 from fastapi import APIRouter, Depends
 from sqlalchemy.ext.asyncio import AsyncSession
-
 from src.api.deps import get_session
 from src.api.schemas import ChatRequest, ChatResponse
 from src.application.services.chat_service import ChatService
 
 router = APIRouter()
-
 
 @router.post("/chat", response_model=ChatResponse)
 async def chat_endpoint(
@@ -24,7 +23,6 @@ async def chat_endpoint(
         documents=result.get("documents", []),
         is_relevant=result["is_relevant"],
     )
-
 
 @router.get("/chat/{chat_id}/history")
 async def get_chat_history(

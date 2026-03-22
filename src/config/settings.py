@@ -1,25 +1,29 @@
+# src/config/settings.py
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 class Settings(BaseSettings):
     model_config = SettingsConfigDict(
         env_file=".env",
         env_file_encoding="utf-8",
+        extra="ignore"
     )
 
     # LLM
-    llm_provider: str = "openai"            # openai | ollama
-    llm_model: str = "gpt-4o-mini"
-    llm_base_url: str = ""                  # для Ollama: http://ollama:11434/v1
-    llm_temperature: float = 0.0
+    LLM_PROVIDER: str = "ollama"
+    LLM_MODEL: str = "mistral"
+    OLLAMA_BASE_URL: str = "http://host.docker.internal:11434"
+    OPENAI_API_KEY: str | None = None
 
     # Embeddings
-    embedding_provider: str = "openai"
-    embedding_model: str = "text-embedding-3-small"
-    embedding_dimensions: int = 1536
+    embedding_provider: str = "huggingface"
+    embedding_model: str = "intfloat/multilingual-e5-large-instruct"
+    embedding_dimensions: int = 1024
     embedding_base_url: str = ""
+    ollama_base_url: str = "http://host.docker.internal:11434"
+    huggingface_cache_dir: str = "/app/.cache/huggingface"  # путь внутри контейнера
 
     # OpenAI
-    openai_api_key: str = "" 
+    openai_api_key: str = ""
 
     # GoogleAI
     google_api_key: str = ""
@@ -48,6 +52,5 @@ class Settings(BaseSettings):
             f"postgresql+psycopg2://{self.db_user}:{self.db_password}"
             f"@{self.db_host}:{self.db_port}/{self.db_name}"
         )
-
 
 settings = Settings()

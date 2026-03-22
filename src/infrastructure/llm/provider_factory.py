@@ -5,10 +5,9 @@ from src.config.settings import settings
 
 def get_llm():
     kwargs = {
-        "model": settings.llm_model,
-        "model_provider": settings.llm_provider,
-        "temperature": settings.llm_temperature,
+        "model": settings.LLM_MODEL,
+        "model_provider": settings.LLM_PROVIDER,
     }
-    if settings.llm_base_url:
-        kwargs["base_url"] = settings.llm_base_url
+    if settings.LLM_PROVIDER == "ollama":
+        kwargs["base_url"] = settings.OLLAMA_BASE_URL
     return init_chat_model(**kwargs)

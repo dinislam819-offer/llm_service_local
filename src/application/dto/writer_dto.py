@@ -1,5 +1,5 @@
+# src/application/dto/writer_dto.py
 from pydantic import BaseModel, Field
-
 
 class WriterResult(BaseModel):
     """Structured output writer-агента."""
@@ -8,8 +8,8 @@ class WriterResult(BaseModel):
         description="Итоговый ответ пользователю на русском языке"
     )
     total_found: int = Field(
-        description="Количество найденных вакансий"
+        description="Количество найденных объявлений об автомобилях"
     )
     has_results: bool = Field(
-        description="True если найдены релевантные вакансии"
+        description="True если найдены релевантные объявления"
     )
