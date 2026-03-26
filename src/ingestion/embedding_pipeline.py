@@ -2,16 +2,13 @@
 import re
 import pandas as pd
 from sqlalchemy.ext.asyncio import AsyncSession
-
 from src.infrastructure.db.models import AvitoListing
 from src.infrastructure.llm.embeddings import get_embeddings
-
 
 def _parse_year(title: str) -> int | None:
     """Извлекает год из title вида 'Toyota Corolla, 2013'."""
     match = re.search(r'\b(19|20)\d{2}\b', title)
     return int(match.group()) if match else None
-
 
 class EmbeddingPipeline:
     def __init__(self):

@@ -1,15 +1,10 @@
-# from langchain_openai import ChatOpenAI
+# src/core/llm.py
 from langchain_ollama import ChatOllama
 from src.config.settings import settings 
 
 def get_llm():
     """Фабрика для создания LLM по конфигурации"""
-    # if settings.LLM_PROVIDER.lower() == "openai":
-    #     return ChatOpenAI(
-    #         model=settings.LLM_MODEL,
-    #         api_key=settings.OPENAI_API_KEY,
-    #         temperature=0.1
-    #     )
+
     if settings.LLM_PROVIDER.lower() == "ollama":
         return ChatOllama(
             model=settings.LLM_MODEL,

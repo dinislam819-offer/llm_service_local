@@ -18,6 +18,7 @@ class VectorRepositoryImpl:
         min_price: float | None = None,
         city: str | None = None,
         brand: str | None = None,
+        model: str | None = None,
         min_year: int | None = None,
         max_year: int | None = None,
     ) -> list[dict]:
@@ -33,7 +34,9 @@ class VectorRepositoryImpl:
         if city is not None:
             filters.append(AvitoListing.city.ilike(f"%{city}%"))
         if brand is not None:
-            filters.append(AvitoListing.param_1.ilike(f"%{brand}%"))
+            filters.append(AvitoListing.param_2.ilike(f"%{brand}%"))
+        if model is not None:
+            filters.append(AvitoListing.param_3.ilike(f"%{model}%"))
         if min_year is not None:
             filters.append(AvitoListing.year >= min_year)
         if max_year is not None:

@@ -15,42 +15,28 @@ class Settings(BaseSettings):
     OPENAI_API_KEY: str | None = None
 
     # Embeddings
-    embedding_provider: str = "huggingface"
-    embedding_model: str = "intfloat/multilingual-e5-large-instruct"
-    embedding_dimensions: int = 1024
-    embedding_base_url: str = ""
-    ollama_base_url: str = "http://host.docker.internal:11434"
-    huggingface_cache_dir: str = "/app/.cache/huggingface"  # путь внутри контейнера
-
-    # OpenAI
-    openai_api_key: str = ""
-
-    # GoogleAI
-    google_api_key: str = ""
+    EMBEDDING_PROVIDER: str = "huggingface"
+    EMBEDDING_MODEL: str = "intfloat/multilingual-e5-large-instruct"
+    EMBEDDING_DIMENSIONS: int = 1024
+    EMBEDDING_BASE_URL: str = ""
+    HUGGINGFACE_CACHE_DIR: str = "/app/.cache/huggingface"
 
     # Database
-    db_host: str = "localhost"
-    db_port: int = 5432
-    db_user: str = "postgres"
-    db_password: str = "secret"
-    db_name: str = "avtobot"
+    DB_HOST: str = "localhost"
+    DB_PORT: int = 5432
+    DB_USER: str = "postgres"
+    DB_PASSWORD: str = "secret"
+    DB_NAME: str = "avtobot"
 
     # App
-    app_env: str = "development"
-    log_level: str = "INFO"
+    APP_ENV: str = "development"
+    LOG_LEVEL: str = "INFO"
 
     @property
     def async_db_url(self) -> str:
         return (
-            f"postgresql+asyncpg://{self.db_user}:{self.db_password}"
-            f"@{self.db_host}:{self.db_port}/{self.db_name}"
-        )
-
-    @property
-    def sync_db_url(self) -> str:
-        return (
-            f"postgresql+psycopg2://{self.db_user}:{self.db_password}"
-            f"@{self.db_host}:{self.db_port}/{self.db_name}"
+            f"postgresql+asyncpg://{self.DB_USER}:{self.DB_PASSWORD}"
+            f"@{self.DB_HOST}:{self.DB_PORT}/{self.DB_NAME}"
         )
 
 settings = Settings()

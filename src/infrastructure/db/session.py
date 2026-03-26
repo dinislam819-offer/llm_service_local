@@ -1,3 +1,4 @@
+# src/infrastructure/db/session.py
 from sqlalchemy import text
 from sqlalchemy.ext.asyncio import create_async_engine, async_sessionmaker, AsyncSession
 from sqlmodel import SQLModel

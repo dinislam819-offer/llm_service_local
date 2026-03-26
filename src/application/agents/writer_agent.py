@@ -32,9 +32,9 @@ def _format_documents(documents: list[dict]) -> str:
         lines.append(
             f"{i}. {doc.get('brand', '?')} {doc.get('model', '')} "
             f"{doc.get('year', '')}г.\n"
-            f"   💰 {price_str} | 🛣 {mileage_str}\n"
-            f"   ⚙️ {doc.get('engine', '')} | {doc.get('transmission', '')}\n"
-            f"   📍 {doc.get('location', 'не указан')}\n"
+            f"   {price_str} | {mileage_str}\n"
+            f"   {doc.get('engine', '')} | {doc.get('transmission', '')}\n"
+            f"   {doc.get('location', 'не указан')}\n"
             f"   {doc.get('description', '')[:200]}"
         )
     return "\n\n".join(lines)

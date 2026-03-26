@@ -1,8 +1,7 @@
+# src/infrastructure/db/chat_repository_impl.py
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlmodel import select
-
 from src.infrastructure.db.models import Chat, ChatMessage
-
 
 class ChatRepositoryImpl:
     def __init__(self, session: AsyncSession):

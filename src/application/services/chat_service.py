@@ -1,3 +1,4 @@
+# src/application/services/chat_service.py 
 from sqlalchemy.ext.asyncio import AsyncSession
 from langchain_core.messages import HumanMessage
 from src.application.workflows.chat_graph import chat_graph
@@ -36,8 +37,8 @@ class ChatService:
             "is_relevant": False,
             "moderation_reason": "",
             "retrieved_documents": [],
-            "sql_query": "",
-            "sql_results": [],
+            # "sql_query": "",
+            # "sql_results": [],
             "final_answer": "",
         }
 

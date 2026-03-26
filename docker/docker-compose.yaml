@@ -20,6 +20,9 @@ services:
       db:
         condition: service_healthy
     restart: unless-stopped
+    networks:
+      - default
+      - monitoring      # НОВОЕ: подключаем к общей сети с Langfuse
 
   db:
     image: pgvector/pgvector:pg16
@@ -28,7 +31,7 @@ services:
       POSTGRES_PASSWORD: ${DB_PASSWORD:-secret}
       POSTGRES_DB: ${DB_NAME:-avtobot}
     ports:
-      - "5432:5432"
+      - "5433:5432"     # ИЗМЕНЕНО: было 5432, меняем на 5433 чтобы не конфликтовать с Langfuse-postgres
     volumes:
       - pg:/var/lib/postgresql/data
       - ./init.sql:/docker-entrypoint-initdb.d/init.sql
@@ -42,3 +45,10 @@ services:
 volumes:
   pg:
   huggingface_cache:
+
+# Этот блок полностью добавил для Langfuse 
+networks:
+  default:
+    driver: bridge
+  monitoring:
+    external: true        # НОВОЕ: внешняя сеть, создаём отдельно

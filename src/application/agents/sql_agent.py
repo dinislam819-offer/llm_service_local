@@ -36,11 +36,6 @@ async def sql_agent_node(state: ChatState) -> dict:
     else:
         logger.warning("SQL AGENT no results returned")
 
-    # return {
-    #     "retrieved_documents": sql_results or [],  # явно пустой список
-    #     "sql_query": result.sql_query,
-    # }
-
     # Новая часть для параллельных агентов
     return {
     "sql_documents": sql_results or [],

@@ -1,0 +1,152 @@
+# docker/docker-compose.langfuse.yaml
+# Источник: https://github.com/langfuse/langfuse/blob/main/docker-compose.yml
+services:
+  # langfuse-worker:
+  #   image: langfuse/langfuse-worker:3
+  #   restart: always
+  #   depends_on:
+  #     langfuse-postgres:
+  #       condition: service_healthy
+  #     langfuse-minio:
+  #       condition: service_healthy
+  #     langfuse-redis:
+  #       condition: service_healthy
+  #     langfuse-clickhouse:
+  #       condition: service_healthy
+  #   environment:
+  #     DATABASE_URL: postgresql://postgres:postgres@langfuse-postgres:5432/postgres
+  #     SALT: "VoEfNQPkof3ISfR+Sxv9MBV1U7RaglDJZcNFIsB/IeA="                   # CHANGEME
+  #     ENCRYPTION_KEY: "47f6781f82fd09d8f4264c96171a230f60956328ddaf6884b43a8a3854ce33ed" # CHANGEME: openssl rand -hex 32
+  #     TELEMETRY_ENABLED: "false"
+  #     LANGFUSE_ENABLE_EXPERIMENTAL_FEATURES: ${LANGFUSE_ENABLE_EXPERIMENTAL_FEATURES:-false}
+      # CLICKHOUSE_MIGRATION_URL: clickhouse://langfuse-clickhouse:9000
+      # CLICKHOUSE_URL: http://langfuse-clickhouse:8123
+      # CLICKHOUSE_USER: clickhouse
+      # CLICKHOUSE_PASSWORD: clickhouse                # CHANGEME
+    #   REDIS_HOST: langfuse-redis
+    #   REDIS_AUTH: myredissecret                      # CHANGEME
+    #   S3_ENDPOINT: http://langfuse-minio:9000
+    #   S3_ACCESS_KEY_ID: minio
+    #   S3_SECRET_ACCESS_KEY: miniosecret              # CHANGEME
+    #   S3_BUCKET_NAME: langfuse
+    #   S3_REGION: auto
+    # networks:
+    #   - langfuse-internal
+    #   - monitoring
+
+  langfuse-web:
+    image: langfuse/langfuse:3
+    restart: always
+    depends_on:
+      langfuse-postgres:
+        condition: service_healthy
+      langfuse-minio:
+        condition: service_healthy
+      langfuse-redis:
+        condition: service_healthy
+      # langfuse-clickhouse:
+      #   condition: service_healthy
+    ports:
+      - "3000:3000"
+    environment:
+      DATABASE_URL: postgresql://postgres:postgres@langfuse-postgres:5432/postgres
+      SALT: "VoEfNQPkof3ISfR+Sxv9MBV1U7RaglDJZcNFIsB/IeA="                  # CHANGEME (то же самое что у worker)
+      ENCRYPTION_KEY: "47f6781f82fd09d8f4264c96171a230f60956328ddaf6884b43a8a3854ce33ed" # CHANGEME (то же самое)
+      NEXTAUTH_URL: http://localhost:3000
+      NEXTAUTH_SECRET: "qf8nMXsMZbe2j1MaZ9KtiUrwF3bTCfBaN+kt5T+8WSw="          # CHANGEME
+      TELEMETRY_ENABLED: "false"
+      LANGFUSE_ENABLE_EXPERIMENTAL_FEATURES: ${LANGFUSE_ENABLE_EXPERIMENTAL_FEATURES:-false}
+      # CLICKHOUSE_MIGRATION_URL: clickhouse://langfuse-clickhouse:9000
+      # CLICKHOUSE_URL: http://langfuse-clickhouse:8123
+      # CLICKHOUSE_USER: clickhouse
+      # CLICKHOUSE_PASSWORD: clickhouse                # CHANGEME
+      REDIS_HOST: langfuse-redis
+      REDIS_AUTH: myredissecret                      # CHANGEME
+      S3_ENDPOINT: http://langfuse-minio:9000
+      S3_ACCESS_KEY_ID: minio
+      S3_SECRET_ACCESS_KEY: miniosecret              # CHANGEME
+      S3_BUCKET_NAME: langfuse
+      S3_REGION: auto
+    networks:
+      - langfuse-internal
+      - monitoring
+
+  langfuse-postgres:
+    image: postgres:17.2
+    restart: always
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 3s
+      timeout: 3s
+      retries: 10
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres                    # CHANGEME
+      POSTGRES_DB: postgres
+    volumes:
+      - langfuse_postgres_:/var/lib/postgresql/data
+    # НЕТ маппинга портов наружу — доступна только внутри Docker-сети
+    networks:
+      - langfuse-internal
+
+  # langfuse-clickhouse:
+  #   image: clickhouse/clickhouse-server
+  #   restart: always
+  #   user: "101:101"
+  #   environment:
+  #     CLICKHOUSE_DB: default
+  #     CLICKHOUSE_USER: clickhouse
+  #     CLICKHOUSE_PASSWORD: clickhouse                # CHANGEME
+  #   volumes:
+  #     - langfuse_clickhouse_:/var/lib/clickhouse
+  #     - langfuse_clickhouse_logs:/var/log/clickhouse-server
+  #   healthcheck:
+  #     test: ["CMD", "wget", "--spider", "-q", "localhost:8123/ping"]
+  #     interval: 5s
+  #     timeout: 5s
+  #     retries: 10
+  #   networks:
+  #     - langfuse-internal
+
+  langfuse-redis:
+    image: redis:7
+    restart: always
+    command: >
+      --requirepass myredissecret
+    healthcheck:
+      test: ["CMD", "redis-cli", "-a", "myredissecret", "ping"]
+      interval: 3s
+      timeout: 3s
+      retries: 10
+    networks:
+      - langfuse-internal
+
+  langfuse-minio:
+    image: minio/minio
+    restart: always
+    entrypoint: sh
+    command: -c 'mkdir -p /data/langfuse && minio server /data --console-address ":9001"'
+    environment:
+      MINIO_ROOT_USER: minio
+      MINIO_ROOT_PASSWORD: miniosecret               # CHANGEME
+    volumes:
+      - langfuse_minio_:/data
+    healthcheck:
+      test: ["CMD", "mc", "ready", "local"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+    networks:
+      - langfuse-internal
+
+volumes:
+  langfuse_postgres_:
+  # langfuse_clickhouse_:
+  # langfuse_clickhouse_logs:
+  langfuse_minio_:
+
+networks:
+  langfuse-internal:
+    driver: bridge
+  monitoring:
+    external: true        # общая сеть с твоим app

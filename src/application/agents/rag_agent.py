@@ -44,10 +44,3 @@ async def rag_agent_node(state: ChatState) -> dict:
 
     # Новая часть для параллельных агентов
     return {"rag_documents": results or []}
-
-# def should_continue_rag(state: ChatState) -> str:
-#     return "writer"
-
-
-# def collect_retrieved_documents(state: ChatState) -> dict:
-#     return {}
